@@ -1,0 +1,175 @@
+//
+// Copyright (C) 2016 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+cc_defaults {
+    name: "header-checker-defaults",
+
+    defaults: [
+        "llvm-build-host-tools-defaults",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-DGOOGLE_PROTOBUF_NO_RTTI",
+        "-UNDEBUG",
+    ],
+
+    cppflags: [
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-std=c++14",
+    ],
+
+    target: {
+        windows: {
+            enabled: false,
+        },
+    },
+
+    compile_multilib: "64",
+    stl: "none",
+}
+
+cc_binary_host {
+    name: "header-abi-dumper",
+
+    defaults: [
+        "header-checker-defaults",
+    ],
+
+    srcs: [
+        "header-abi-dumper/src/abi_wrappers.cpp",
+        "header-abi-dumper/src/ast_processing.cpp",
+        "header-abi-dumper/src/diagnostic_consumer.cpp",
+        "header-abi-dumper/src/fake_decl_source.cpp",
+        "header-abi-dumper/src/fixed_argv.cpp",
+        "header-abi-dumper/src/frontend_action.cpp",
+        "header-abi-dumper/src/frontend_action_factory.cpp",
+        "header-abi-dumper/src/header_checker.cpp",
+    ],
+
+    static_libs: [
+        "libheader-abi-util",
+        "libheader-checker-proto",
+        "libjsoncpp",
+    ],
+
+    shared_libs: [
+        "libprotobuf-cpp-full",
+        "libLLVM_host",
+        "libclang_cxx_host",
+        "libc++_host",
+    ],
+}
+
+cc_defaults {
+    name: "header-abi-linker-defaults",
+
+    defaults: ["header-checker-defaults"],
+
+    static_libs: [
+        "libheader-abi-util",
+        "libheader-checker-proto",
+        "libjsoncpp",
+    ],
+
+    shared_libs: [
+        "libprotobuf-cpp-full",
+        "libLLVM_host",
+        "libclang_cxx_host",
+        "libc++_host",
+    ],
+}
+
+cc_binary_host {
+    name: "header-abi-linker",
+
+    defaults: [
+        "header-checker-defaults",
+        "header-abi-linker-defaults",
+    ],
+
+    srcs: [
+        "header-abi-linker/src/header_abi_linker.cpp",
+    ],
+}
+
+cc_binary_host {
+    name: "header-abi-diff",
+
+    defaults: [
+        "header-checker-defaults",
+        "header-abi-linker-defaults",
+    ],
+
+    srcs: [
+        "header-abi-diff/src/abi_diff.cpp",
+        "header-abi-diff/src/abi_diff_wrappers.cpp",
+        "header-abi-diff/src/header_abi_diff.cpp",
+    ],
+}
+
+cc_binary_host {
+    name: "merge-abi-diff",
+
+    defaults: [
+        "header-checker-defaults",
+        "header-abi-linker-defaults",
+    ],
+
+    srcs: [
+        "merge-abi-diff/src/merge_abi_diff.cpp",
+    ],
+}
+
+cc_library_host_static {
+    name: "libheader-abi-util",
+
+    defaults: [
+        "header-checker-defaults",
+    ],
+
+    srcs: [
+        "header-abi-util/src/abi_diff_helpers.cpp",
+        "header-abi-util/src/collect_exported_headers.cpp",
+        "header-abi-util/src/ir_representation.cpp",
+        "header-abi-util/src/ir_representation_json.cpp",
+        "header-abi-util/src/ir_representation_protobuf.cpp",
+        "header-abi-util/src/so_file_parser.cpp",
+        "header-abi-util/src/version_script_parser.cpp",
+    ],
+
+    static_libs: [
+        "libheader-checker-proto",
+        "libjsoncpp",
+    ],
+
+    shared_libs: [
+        "libLLVM_host",
+        "libc++_host",
+        "libprotobuf-cpp-full",
+    ],
+
+    cflags: [
+        "-Wcast-qual",
+        "-Wno-long-long",
+        "-Wno-unused-parameter",
+    ],
+
+    export_include_dirs: ["header-abi-util/include"],
+}
